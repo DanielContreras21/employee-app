@@ -14,7 +14,7 @@ export interface Employee {
   providedIn: 'root'
 })
 export class EmployeeService {
-  private apiUrl = '/api/employees';
+  private apiUrl = 'http://localhost:8080/employees';
   private httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
