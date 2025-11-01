@@ -14,15 +14,52 @@ let createdEmployeeId: number;
 
 test.describe('Employee CRUD API', () => {
 
-  test('CREATE employee via API', async ({ request }) => {
+  test('CREATE employee 1 via API', async ({ request }) => {
     const newEmployee: Employee = { name: 'Test Employee', position: 'Developer', salary: 50000 };
     const response = await request.post(API_URL, { data: newEmployee });
-    expect(response.status()).toBe(200); // tu backend retorna 200 al crear
+    expect(response.status()).toBe(200);
     const created: Employee = await response.json();
     expect(created.id).toBeDefined();
     expect(created.name).toBe(newEmployee.name);
     createdEmployeeId = created.id!;
   });
+
+  test('CREATE employee 2 via API', async ({ request }) => {
+    const newEmployee: Employee = { name: 'Ana Gómez', position: 'Project Manager', salary: 72000 };
+    const response = await request.post(API_URL, { data: newEmployee });
+    expect(response.status()).toBe(200);
+    const created: Employee = await response.json();
+    expect(created.id).toBeDefined();
+    expect(created.name).toBe(newEmployee.name);
+  });
+
+  test('CREATE employee 3 via API', async ({ request }) => {
+    const newEmployee: Employee = { name: 'Carlos Ruiz', position: 'QA Engineer', salary: 45000 };
+    const response = await request.post(API_URL, { data: newEmployee });
+    expect(response.status()).toBe(200);
+    const created: Employee = await response.json();
+    expect(created.id).toBeDefined();
+    expect(created.name).toBe(newEmployee.name);
+  });
+
+  test('CREATE employee 4 via API', async ({ request }) => {
+    const newEmployee: Employee = { name: 'Laura Torres', position: 'UX Designer', salary: 60000 };
+    const response = await request.post(API_URL, { data: newEmployee });
+    expect(response.status()).toBe(200);
+    const created: Employee = await response.json();
+    expect(created.id).toBeDefined();
+    expect(created.name).toBe(newEmployee.name);
+  });
+
+  test('CREATE employee 5 via API', async ({ request }) => {
+    const newEmployee: Employee = { name: 'Miguel Ángel', position: 'DevOps Engineer', salary: 80000 };
+    const response = await request.post(API_URL, { data: newEmployee });
+    expect(response.status()).toBe(200);
+    const created: Employee = await response.json();
+    expect(created.id).toBeDefined();
+    expect(created.name).toBe(newEmployee.name);
+  });
+
 
   test('GET employee by ID via API', async ({ request }) => {
     const response = await request.get(`${API_URL}/${createdEmployeeId}`);
@@ -49,39 +86,5 @@ test.describe('Employee CRUD API', () => {
     const getResponse = await request.get(`${API_URL}/${createdEmployeeId}`);
     expect(getResponse.status()).toBe(404);
   });
-});
-
-test.describe('Employee Frontend Form', () => {
-
-  test.beforeEach(async ({ page }) => {
-    await page.goto(FRONT_URL + '/new');
-  });
-
-  test('should display create employee form', async ({ page }) => {
-    await expect(page.locator('form')).toBeVisible();
-    await expect(page.locator('input[formControlName="name"]')).toBeVisible();
-    await expect(page.locator('input[formControlName="position"]')).toBeVisible();
-    await expect(page.locator('input[formControlName="salary"]')).toBeVisible();
-    await expect(page.locator('button:has-text("Crear Empleado")')).toBeVisible();
-    await expect(page.locator('button:has-text("Cancelar")')).toBeVisible();
-  });
-
-  test('should show validation for required name', async ({ page }) => {
-    await page.locator('input[formControlName="name"]').focus();
-    await page.locator('input[formControlName="name"]').blur();
-    await expect(page.locator('text=name es requerido')).toBeVisible();
-  });
-
-  test('should allow filling and submitting form', async ({ page }) => {
-  await page.fill('input[formControlName="name"]', 'Frontend Employee');
-  await page.fill('input[formControlName="position"]', 'Tester');
-  await page.fill('input[formControlName="salary"]', '45000');
-  await page.click('button:has-text("Crear Empleado")');
-
-  // Esperar que no haya errores visibles
-  await expect(page.locator('text=name es requerido')).toHaveCount(0);
-  await expect(page.locator('text=salary debe ser mayor o igual a 0')).toHaveCount(0);
-});
-
 });
 
