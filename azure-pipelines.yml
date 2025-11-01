@@ -2,27 +2,35 @@ trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
-
-variables:
-  BACKEND_URL: 'https://nongenerical-dereistically-rachael.ngrok-free.dev'
-  FRONTEND_URL: 'http://localhost:4200'
+  vmImage: 'ubuntu-latest'
 
 steps:
-# 1️⃣ Instalar dependencias del proyecto (ignorando conflictos de peer deps)
-- script: |
-    npm install --legacy-peer-deps
-  displayName: 'Instalar dependencias del proyecto'
+# 1. Checkout del repositorio
+- task: Checkout@1
 
-# 2️⃣ Instalar navegadores de Playwright
+# 2. Instalar Node.js
+- task: UseNode@1
+  inputs:
+    version: '20.x'
+
+# 3. Instalar dependencias del proyecto
+- script: |
+    npm ci --legacy-peer-deps
+  displayName: 'Instalar dependencias'
+
+# 4. Levantar frontend Angular en background
+- script: |
+    npx ng serve --port 4200 --host 0.0.0.0 &
+    echo "Esperando 10 segundos para que Angular arranque..."
+    sleep 10
+  displayName: 'Levantar frontend Angular'
+
+# 5. Instalar browsers de Playwright
 - script: |
     npx playwright install
-  displayName: 'Instalar Playwright Browsers'
+  displayName: 'Instalar navegadores Playwright'
 
-# 3️⃣ Ejecutar tests de Playwright
+# 6. Ejecutar tests de Playwright
 - script: |
-    npx playwright test ./playwright/tests --timeout 30000
+    npx playwright test ./playwright/tests --timeout 60000
   displayName: 'Ejecutar tests de Playwright'
-  env:
-    API_URL: $(BACKEND_URL)/employees
-    FRONT_URL: $(FRONTEND_URL)/employees
