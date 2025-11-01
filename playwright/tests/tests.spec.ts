@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 
 const API_URL = 'https://nongenerical-dereistically-rachael.ngrok-free.dev/employees';
-const FRONT_URL = 'http://localhost:4200/employees';
 
 interface Employee {
   id?: number;
