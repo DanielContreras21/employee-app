@@ -9,12 +9,12 @@ variables:
   FRONTEND_URL: 'http://localhost:4200'
 
 steps:
-# 1️⃣ Instalar dependencias del proyecto
+# 1️⃣ Instalar dependencias del proyecto (ignorando conflictos de peer deps)
 - script: |
-    npm ci --legacy-peer-deps
+    npm install --legacy-peer-deps
   displayName: 'Instalar dependencias del proyecto'
 
-# 2️⃣ Instalar Playwright Browsers
+# 2️⃣ Instalar navegadores de Playwright
 - script: |
     npx playwright install
   displayName: 'Instalar Playwright Browsers'
