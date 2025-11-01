@@ -32,7 +32,7 @@ steps:
   displayName: 'Instalar navegadores de Playwright'
 
 # 5. Ejecutar tests de Playwright
-- script: npx playwright test --reporter=html
+- script: npx playwright test ./playwright/tests --reporter=html
   displayName: 'Ejecutar pruebas Playwright (reporte HTML)'
 
 - task: PublishBuildArtifacts@1
