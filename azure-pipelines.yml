@@ -9,40 +9,56 @@ variables:
   API_URL: 'http://localhost:8080'
 
 stages:
-- stage: Install
-  displayName: 'Install dependencies'
+- stage: Setup
+  displayName: 'Setup Environment'
   jobs:
   - job: Install
+    displayName: 'Install Dependencies'
     steps:
     - task: NodeTool@0
       inputs:
-        versionSpec: '18.x'
-      displayName: 'Use Node.js 18'
+        versionSpec: '20.x'
+      displayName: 'Use Node.js 20.x'
 
     - script: |
-        npm install
-        npx playwright install --with-deps
-      displayName: 'Install npm packages and Playwright browsers'
+        npm install --legacy-peer-deps
+      displayName: 'Install npm dependencies'
 
-- stage: RunFrontend
-  displayName: 'Run Frontend and Playwright Tests'
-  dependsOn: Install
+    - script: |
+        npx playwright install
+      displayName: 'Install Playwright Browsers'
+
+- stage: ServeBackend
+  displayName: 'Run Backend API'
   jobs:
-  - job: PlaywrightTests
-    timeoutInMinutes: 15
+  - job: Backend
+    displayName: 'Start API'
     steps:
     - script: |
-        # Levantar Angular en background
-        npx ng serve --port 4200 &
-        FRONT_PID=$!
-        echo "Frontend PID: $FRONT_PID"
+        # Ejecuta tu backend en segundo plano
+        nohup npm run start:api &
+      displayName: 'Start Backend API'
 
-        # Esperar un momento a que Angular levante
-        npx wait-on http://localhost:4200
+- stage: ServeFrontend
+  displayName: 'Run Angular Frontend'
+  dependsOn: ServeBackend
+  jobs:
+  - job: Frontend
+    displayName: 'Start Angular App'
+    steps:
+    - script: |
+        nohup npx ng serve --port 4200 &
+        # Esperar a que el frontend esté listo
+        sleep 15
+      displayName: 'Start Angular Frontend'
 
-        # Ejecutar tests de Playwright
-        npx playwright test ./playwright/tests --timeout=30000
-
-        # Detener Angular
-        kill $FRONT_PID
-      displayName: 'Run Angular and Playwright tests'
+- stage: RunPlaywrightTests
+  displayName: 'Run Playwright Tests'
+  dependsOn: ServeFrontend
+  jobs:
+  - job: Playwright
+    displayName: 'Execute Playwright Tests'
+    steps:
+    - script: |
+        npx playwright test ./playwright/tests --reporter=list
+      displayName: 'Run Playwright Front + API Tests'
