@@ -1,45 +1,48 @@
 trigger:
-  - main  # o la rama que prefieras
+- main
 
 pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  node_version: '20.x'  # versión de Node.js
+  FRONT_URL: 'http://localhost:4200'
+  API_URL: 'http://localhost:8080'
 
-steps:
-  # 1️⃣ Instalar Node.js
-  - task: UseNode@1
-    inputs:
-      version: $(node_version)
+stages:
+- stage: Install
+  displayName: 'Install dependencies'
+  jobs:
+  - job: Install
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: 'Use Node.js 18'
 
-  # 2️⃣ Instalar dependencias del proyecto Angular
-  - script: |
-      npm ci
-    displayName: 'Instalar dependencias del proyecto'
+    - script: |
+        npm install
+        npx playwright install --with-deps
+      displayName: 'Install npm packages and Playwright browsers'
 
-  # 3️⃣ Compilar la app Angular (si aplica)
-  - script: |
-      npm run build --if-present
-    displayName: 'Compilar aplicación Angular'
+- stage: RunFrontend
+  displayName: 'Run Frontend and Playwright Tests'
+  dependsOn: Install
+  jobs:
+  - job: PlaywrightTests
+    timeoutInMinutes: 15
+    steps:
+    - script: |
+        # Levantar Angular en background
+        npx ng serve --port 4200 &
+        FRONT_PID=$!
+        echo "Frontend PID: $FRONT_PID"
 
-  # 4️⃣ Instalar Playwright (en la carpeta playwright/)
-  - script: |
-      cd playwright
-      npm ci
-      npx playwright install --with-deps
-    displayName: 'Instalar dependencias y navegadores de Playwright'
+        # Esperar un momento a que Angular levante
+        npx wait-on http://localhost:4200
 
-  # 5️⃣ Ejecutar tests de Playwright
-  - script: |
-      cd playwright
-      npx playwright test --reporter=html
-    displayName: 'Ejecutar tests E2E con Playwright'
+        # Ejecutar tests de Playwright
+        npx playwright test ./playwright/tests --timeout=30000
 
-  # 6️⃣ Publicar reporte de Playwright
-  - task: PublishPipelineArtifact@1
-    inputs:
-      targetPath: 'playwright/playwright-report'
-      artifact: 'playwright-report'
-    condition: succeededOrFailed()
-    displayName: 'Publicar reporte HTML de Playwright'
+        # Detener Angular
+        kill $FRONT_PID
+      displayName: 'Run Angular and Playwright tests'
