@@ -1,5 +1,5 @@
 trigger:
-- main  # o la rama que uses
+- main
 
 pool:
   vmImage: ubuntu-latest
@@ -21,9 +21,7 @@ steps:
 
 # 3️⃣ Ejecutar tests de Playwright
 - script: |
-    npx playwright test ./playwright/tests \
-      --global-setup ./playwright/setup-global.ts \
-      --timeout 30000
+    npx playwright test ./playwright/tests --timeout 30000
   displayName: 'Ejecutar tests de Playwright'
   env:
     API_URL: $(BACKEND_URL)/employees
