@@ -4,33 +4,34 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+  FRONT_URL: 'http://localhost:4200'
+
 steps:
-# 1. Checkout del repositorio
-- task: Checkout@1
-
-# 2. Instalar Node.js
-- task: UseNode@1
+# 1. Instalar Node.js
+- task: NodeTool@0
   inputs:
-    version: '20.x'
+    versionSpec: '20.x'
+  displayName: 'Instalar Node.js'
 
-# 3. Instalar dependencias del proyecto
+# 2. Instalar dependencias
 - script: |
-    npm ci --legacy-peer-deps
+    npm install --legacy-peer-deps
   displayName: 'Instalar dependencias'
 
-# 4. Levantar frontend Angular en background
+# 3. Levantar frontend Angular en background
 - script: |
-    npx ng serve --port 4200 --host 0.0.0.0 &
-    echo "Esperando 10 segundos para que Angular arranque..."
-    sleep 10
+    npx ng serve --port 4200 &
+    echo "Esperando a que Angular esté listo..."
+    sleep 20
   displayName: 'Levantar frontend Angular'
 
-# 5. Instalar browsers de Playwright
+# 4. Instalar navegadores de Playwright
 - script: |
     npx playwright install
-  displayName: 'Instalar navegadores Playwright'
+  displayName: 'Instalar navegadores de Playwright'
 
-# 6. Ejecutar tests de Playwright
+# 5. Ejecutar tests de Playwright
 - script: |
     npx playwright test ./playwright/tests --timeout 60000
   displayName: 'Ejecutar tests de Playwright'
