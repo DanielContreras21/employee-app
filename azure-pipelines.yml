@@ -5,60 +5,33 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
+  API_URL: 'https://nongenerical-dereistically-rachael.ngrok-free.dev/employees'
   FRONT_URL: 'http://localhost:4200'
-  API_URL: 'http://localhost:8080'
 
 stages:
-- stage: Setup
-  displayName: 'Setup Environment'
+- stage: Install
+  displayName: 'Instalar dependencias'
   jobs:
   - job: Install
-    displayName: 'Install Dependencies'
     steps:
     - task: NodeTool@0
       inputs:
         versionSpec: '20.x'
-      displayName: 'Use Node.js 20.x'
+      displayName: 'Usar Node 20.x'
 
-    - script: |
-        npm install --legacy-peer-deps
-      displayName: 'Install npm dependencies'
+    - script: npm ci
+      displayName: 'Instalar dependencias'
 
-    - script: |
-        npx playwright install
-      displayName: 'Install Playwright Browsers'
+    - script: npx playwright install
+      displayName: 'Instalar navegadores de Playwright'
 
-- stage: ServeBackend
-  displayName: 'Run Backend API'
+- stage: RunTests
+  displayName: 'Ejecutar tests Playwright'
   jobs:
-  - job: Backend
-    displayName: 'Start API'
+  - job: PlaywrightTests
     steps:
     - script: |
-        # Ejecuta tu backend en segundo plano
-        nohup npm run start:api &
-      displayName: 'Start Backend API'
-
-- stage: ServeFrontend
-  displayName: 'Run Angular Frontend'
-  dependsOn: ServeBackend
-  jobs:
-  - job: Frontend
-    displayName: 'Start Angular App'
-    steps:
-    - script: |
-        nohup npx ng serve --port 4200 &
-        # Esperar a que el frontend esté listo
-        sleep 15
-      displayName: 'Start Angular Frontend'
-
-- stage: RunPlaywrightTests
-  displayName: 'Run Playwright Tests'
-  dependsOn: ServeFrontend
-  jobs:
-  - job: Playwright
-    displayName: 'Execute Playwright Tests'
-    steps:
-    - script: |
-        npx playwright test ./playwright/tests --reporter=list
-      displayName: 'Run Playwright Front + API Tests'
+        echo "API_URL=$(API_URL)"
+        echo "FRONT_URL=$(FRONT_URL)"
+        npx playwright test ./playwright/tests
+      displayName: 'Ejecutar tests de frontend y API'
