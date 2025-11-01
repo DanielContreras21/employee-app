@@ -1,37 +1,30 @@
 trigger:
-- main
+- main  # o la rama que uses
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: ubuntu-latest
 
 variables:
-  API_URL: 'https://nongenerical-dereistically-rachael.ngrok-free.dev/employees'
-  FRONT_URL: 'http://localhost:4200'
+  BACKEND_URL: 'https://nongenerical-dereistically-rachael.ngrok-free.dev'
+  FRONTEND_URL: 'http://localhost:4200'
 
-stages:
-- stage: Install
-  displayName: 'Instalar dependencias'
-  jobs:
-  - job: Install
-    steps:
-    - task: NodeTool@0
-      inputs:
-        versionSpec: '20.x'
-      displayName: 'Usar Node 20.x'
+steps:
+# 1️⃣ Instalar dependencias del proyecto
+- script: |
+    npm ci --legacy-peer-deps
+  displayName: 'Instalar dependencias del proyecto'
 
-    - script: npm ci
-      displayName: 'Instalar dependencias'
+# 2️⃣ Instalar Playwright Browsers
+- script: |
+    npx playwright install
+  displayName: 'Instalar Playwright Browsers'
 
-    - script: npx playwright install
-      displayName: 'Instalar navegadores de Playwright'
-
-- stage: RunTests
-  displayName: 'Ejecutar tests Playwright'
-  jobs:
-  - job: PlaywrightTests
-    steps:
-    - script: |
-        echo "API_URL=$(API_URL)"
-        echo "FRONT_URL=$(FRONT_URL)"
-        npx playwright test ./playwright/tests
-      displayName: 'Ejecutar tests de frontend y API'
+# 3️⃣ Ejecutar tests de Playwright
+- script: |
+    npx playwright test ./playwright/tests \
+      --global-setup ./playwright/setup-global.ts \
+      --timeout 30000
+  displayName: 'Ejecutar tests de Playwright'
+  env:
+    API_URL: $(BACKEND_URL)/employees
+    FRONT_URL: $(FRONTEND_URL)/employees
